@@ -1,0 +1,13 @@
+.ant-layout {
+    height: 100%;
+}
+
+.logo-box {
+    display: flex;
+    justify-content: center;
+    .logo {
+        width: 180px;
+        height: 80px;
+        padding: 10px;
+    }
+}
