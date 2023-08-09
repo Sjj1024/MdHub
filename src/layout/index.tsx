@@ -7,7 +7,7 @@ import {
     UserOutlined,
     VideoCameraOutlined,
 } from '@ant-design/icons'
-import { Layout, Menu, Button, theme, Dropdown } from 'antd'
+import { Layout, Menu, theme, Dropdown } from 'antd'
 import './index.scss'
 import type { MenuProps } from 'antd'
 import { Link, Outlet } from 'react-router-dom'
@@ -74,8 +74,7 @@ const LayoutBoard: React.FC = () => {
                     className="logo-box"
                     style={{ color: 'white', fontSize: '30px' }}
                 >
-                    MdHub
-                    {/* <img src={Logo} alt="" className="logo" /> */}
+                    {collapsed ? 'Md' : 'MdHub'}
                 </div>
                 <Menu
                     theme="dark"
@@ -105,22 +104,16 @@ const LayoutBoard: React.FC = () => {
                     style={{ padding: 0, background: colorBgContainer }}
                     className="header-box"
                 >
-                    <Button
-                        type="text"
-                        icon={
-                            collapsed ? (
-                                <MenuUnfoldOutlined />
-                            ) : (
-                                <MenuFoldOutlined />
-                            )
-                        }
+                    <span
+                        className="coll-btn"
                         onClick={() => setCollapsed(!collapsed)}
-                        style={{
-                            fontSize: '16px',
-                            width: 64,
-                            height: 64,
-                        }}
-                    />
+                    >
+                        {collapsed ? (
+                            <MenuUnfoldOutlined />
+                        ) : (
+                            <MenuFoldOutlined />
+                        )}
+                    </span>
                     <div className="user-main">
                         <span className="user-name">{userInfo.userName}</span>
 

@@ -1,9 +1,9 @@
 import { makeAutoObservable } from 'mobx'
 
 class UserInfo {
-    userName = '默认小神'
-    loginName = ''
-    avatarUrl = ''
+    userName = localStorage.getItem('userName') || '默认小神'
+    loginName = localStorage.getItem('loginName') || 'Sjj1024'
+    avatarUrl = localStorage.getItem('avatarUrl') || ''
 
     constructor() {
         makeAutoObservable(this)
@@ -13,6 +13,9 @@ class UserInfo {
         this.userName = info.userName
         this.loginName = info.loginName
         this.avatarUrl = info.avatarUrl
+        localStorage.setItem('userName', this.userName)
+        localStorage.setItem('loginName', this.loginName)
+        localStorage.setItem('avatarUrl', this.avatarUrl)
     }
 }
 
