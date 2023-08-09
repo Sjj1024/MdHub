@@ -5,12 +5,15 @@ import './index.scss'
 import logo from '@/assets/images/logo.jpg'
 import commonApi from '@/apis/common'
 import { useState } from 'react'
+import { useStore } from '@/store'
 
 function Login() {
     const navigate = useNavigate()
     const [messageApi, contextHolder] = message.useMessage()
 
     const [loading, setLoading] = useState(false)
+
+    const { userInfo } = useStore()
 
     const onFinish = async (values: any) => {
         console.log('Success:', values)
@@ -26,6 +29,11 @@ function Login() {
                 })
                 // 将Token存储到本地
                 localStorage.setItem('token', values.token)
+                userInfo.setUserInfo({
+                    userName: (res as any).name,
+                    loginName: (res as any).login,
+                    avatarUrl: (res as any).avatar_url,
+                })
                 navigate('/', { replace: true })
                 setLoading(false)
             }

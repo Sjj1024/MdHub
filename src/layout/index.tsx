@@ -1,3 +1,4 @@
+/* eslint-disable react-refresh/only-export-components */
 import React, { useState } from 'react'
 import {
     MenuFoldOutlined,
@@ -10,48 +11,15 @@ import { Layout, Menu, Button, theme, Dropdown } from 'antd'
 import './index.scss'
 import type { MenuProps } from 'antd'
 import { Link, Outlet } from 'react-router-dom'
+import { useStore } from '@/store'
+import { observer } from 'mobx-react-lite'
 
 const logOut = (e: React.MouseEvent) => {
     e.preventDefault()
     console.log('退出登录')
-    // location.href = '/login'
+    localStorage.removeItem('token')
     location.replace('/login')
 }
-
-const items: MenuProps['items'] = [
-    {
-        key: '1',
-        label: (
-            <a
-                target="_blank"
-                rel="noopener noreferrer"
-                href="https://www.antgroup.com"
-            >
-                我的资料
-            </a>
-        ),
-    },
-    {
-        key: '2',
-        label: (
-            <a
-                target="_blank"
-                rel="noopener noreferrer"
-                href="https://www.aliyun.com"
-            >
-                切换账号
-            </a>
-        ),
-    },
-    {
-        key: '3',
-        label: (
-            <a rel="noopener noreferrer" onClick={logOut}>
-                退出登录
-            </a>
-        ),
-    },
-]
 
 const { Header, Sider, Content } = Layout
 
@@ -60,6 +28,43 @@ const LayoutBoard: React.FC = () => {
     const {
         token: { colorBgContainer },
     } = theme.useToken()
+
+    const { userInfo } = useStore()
+
+    const items: MenuProps['items'] = [
+        {
+            key: '1',
+            label: (
+                <a
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    href={`https://github.com/${userInfo.loginName}`}
+                >
+                    我的资料
+                </a>
+            ),
+        },
+        {
+            key: '2',
+            label: (
+                <a
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    href="https://www.aliyun.com"
+                >
+                    切换账号
+                </a>
+            ),
+        },
+        {
+            key: '3',
+            label: (
+                <a rel="noopener noreferrer" onClick={logOut}>
+                    退出登录
+                </a>
+            ),
+        },
+    ]
 
     return (
         <Layout>
@@ -117,10 +122,18 @@ const LayoutBoard: React.FC = () => {
                         }}
                     />
                     <div className="user-main">
-                        <span className="user-name">1024小神</span>
+                        <span className="user-name">{userInfo.userName}</span>
 
                         <Dropdown menu={{ items }} placement="bottom" arrow>
-                            <UserOutlined className="user-icon" />
+                            {userInfo.avatarUrl ? (
+                                <img
+                                    src={userInfo.avatarUrl}
+                                    alt=""
+                                    className="user-avatar"
+                                />
+                            ) : (
+                                <UserOutlined className="user-icon" />
+                            )}
                         </Dropdown>
                     </div>
                 </Header>
@@ -139,4 +152,4 @@ const LayoutBoard: React.FC = () => {
     )
 }
 
-export default LayoutBoard
+export default observer(LayoutBoard)
