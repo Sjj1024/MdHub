@@ -6,9 +6,52 @@ import {
     UserOutlined,
     VideoCameraOutlined,
 } from '@ant-design/icons'
-import { Layout, Menu, Button, theme } from 'antd'
+import { Layout, Menu, Button, theme, Dropdown } from 'antd'
 import './index.scss'
-import Logo from '@/assets/images/logo.jpg'
+import type { MenuProps } from 'antd'
+import { Link, Outlet } from 'react-router-dom'
+
+const logOut = (e: React.MouseEvent) => {
+    e.preventDefault()
+    console.log('退出登录')
+    // location.href = '/login'
+    location.replace('/login')
+}
+
+const items: MenuProps['items'] = [
+    {
+        key: '1',
+        label: (
+            <a
+                target="_blank"
+                rel="noopener noreferrer"
+                href="https://www.antgroup.com"
+            >
+                我的资料
+            </a>
+        ),
+    },
+    {
+        key: '2',
+        label: (
+            <a
+                target="_blank"
+                rel="noopener noreferrer"
+                href="https://www.aliyun.com"
+            >
+                切换账号
+            </a>
+        ),
+    },
+    {
+        key: '3',
+        label: (
+            <a rel="noopener noreferrer" onClick={logOut}>
+                退出登录
+            </a>
+        ),
+    },
+]
 
 const { Header, Sider, Content } = Layout
 
@@ -22,8 +65,12 @@ const LayoutBoard: React.FC = () => {
         <Layout>
             <Sider trigger={null} collapsible collapsed={collapsed}>
                 {/* <div className="demo-logo-vertical"> */}
-                <div className="logo-box">
-                    <img src={Logo} alt="" className="logo" />
+                <div
+                    className="logo-box"
+                    style={{ color: 'white', fontSize: '30px' }}
+                >
+                    MdHub
+                    {/* <img src={Logo} alt="" className="logo" /> */}
                 </div>
                 <Menu
                     theme="dark"
@@ -33,23 +80,26 @@ const LayoutBoard: React.FC = () => {
                         {
                             key: '1',
                             icon: <UserOutlined />,
-                            label: 'nav 1',
+                            label: <Link to="/">数据概览</Link>,
                         },
                         {
                             key: '2',
                             icon: <VideoCameraOutlined />,
-                            label: 'nav 2',
+                            label: <Link to="/article">内容管理</Link>,
                         },
                         {
                             key: '3',
                             icon: <UploadOutlined />,
-                            label: 'nav 3',
+                            label: <Link to="/publish">发布文章</Link>,
                         },
                     ]}
                 />
             </Sider>
             <Layout>
-                <Header style={{ padding: 0, background: colorBgContainer }}>
+                <Header
+                    style={{ padding: 0, background: colorBgContainer }}
+                    className="header-box"
+                >
                     <Button
                         type="text"
                         icon={
@@ -66,6 +116,13 @@ const LayoutBoard: React.FC = () => {
                             height: 64,
                         }}
                     />
+                    <div className="user-main">
+                        <span className="user-name">1024小神</span>
+
+                        <Dropdown menu={{ items }} placement="bottom" arrow>
+                            <UserOutlined className="user-icon" />
+                        </Dropdown>
+                    </div>
                 </Header>
                 <Content
                     style={{
@@ -75,7 +132,7 @@ const LayoutBoard: React.FC = () => {
                         background: colorBgContainer,
                     }}
                 >
-                    Content
+                    <Outlet></Outlet>
                 </Content>
             </Layout>
         </Layout>

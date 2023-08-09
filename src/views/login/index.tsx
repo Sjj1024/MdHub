@@ -2,6 +2,7 @@ import { Form, Input, Button } from 'antd'
 import { UserOutlined, LockOutlined } from '@ant-design/icons'
 import { useNavigate } from 'react-router-dom'
 import './index.scss'
+import logo from '@/assets/images/logo.jpg'
 
 function Login() {
     const navigate = useNavigate()
@@ -15,7 +16,7 @@ function Login() {
         <div className="login-box">
             <div className="login-main">
                 <div className="avatar_box">
-                    <img src="./logo192.png" alt="" />
+                    <img src={logo} alt="" className="login-logo" />
                 </div>
                 <Form
                     name="normal_login"
