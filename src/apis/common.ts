@@ -1,11 +1,12 @@
 import requests from '@/utils/http'
 
 export default {
-    getList(data: object) {
-        return requests({
-            url: '/message/list',
-            method: 'post',
-            data,
+    getUserInfo(token: string) {
+        return requests('/user', {
+            method: 'get',
+            headers: {
+                Authorization: `Bearer ${token}`,
+            },
         })
     },
     changeStatus(data: object) {
