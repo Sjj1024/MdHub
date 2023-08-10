@@ -1,13 +1,10 @@
 .echart-box {
     display: flex;
+    flex-wrap: wrap;
 }
 
-.first-charts {
+.charts-box {
     width: 500px;
     height: 400px;
-}
-
-.pie-charts {
-    width: 500px;
-    height: 400px;
+    margin-right: 20px;
 }

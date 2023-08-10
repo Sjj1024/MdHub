@@ -1,0 +1,53 @@
+.articl-main {
+    .search-form {
+        display: flex;
+        justify-content: space-between;
+        margin-bottom: 20px;
+        .form {
+            display: flex;
+            .title {
+                width: 200px;
+                margin-right: 10px;
+            }
+        }
+
+        .action-box {
+            display: flex;
+            align-items: center;
+            .action-btn {
+                margin-left: 10px;
+            }
+
+            .style-icon {
+                font-size: 20px;
+                cursor: pointer;
+            }
+        }
+
+        .search {
+            width: 140px;
+            display: flex;
+            justify-content: space-between;
+            margin-left: 30px;
+        }
+    }
+
+    .grid-show {
+        display: flex;
+        flex-wrap: wrap;
+        .item-box {
+            width: 149px;
+            height: 120px;
+            text-align: center;
+            cursor: pointer;
+            // margin-right: 20px;
+            padding: 10px;
+            margin-bottom: 30px;
+
+            .file-name {
+                font-size: 16px;
+                margin-top: 10px;
+            }
+        }
+    }
+}
