@@ -110,7 +110,7 @@ export default function Article() {
 
     // 获取资源广场里面的内容，然后渲染
     const [search, setSearch] = useState<string>('')
-    const [selType, setType] = useState<string>('all')
+    const [selType, setType] = useState<string>('')
     //
     const [preList, setPreList] = useState<Array<any>>([])
     // 分页大小
@@ -118,9 +118,11 @@ export default function Article() {
     const [pageSize, setPageSize] = useState(10)
     const [pageTotal, setPageTotal] = useState(0)
     const searchArticle = () => {
-        console.log('搜索文章', search, selType, pageTotal)
+        console.log('搜索文章', search, selType)
+        getFiles(search, selType)
     }
-    //
+
+    // 获取数据
     const getFiles = useCallback(
         async (
             filter?: string | null,
@@ -180,7 +182,7 @@ export default function Article() {
     // 点击重置按钮
     const resetSearch = () => {
         setSearch('')
-        setType('all')
+        setType('')
         console.log('点击重置按钮')
     }
 
@@ -216,7 +218,7 @@ export default function Article() {
                             onSelect={(val) => setType(val)}
                             style={{ width: 120 }}
                             options={[
-                                { value: 'all', label: '全部' },
+                                { value: '', label: '全部' },
                                 { value: 'video', label: '视频' },
                                 { value: 'image', label: '图片' },
                                 { value: 'music', label: '音乐' },
@@ -345,6 +347,7 @@ export default function Article() {
                     </div>
                     <Pagination
                         showSizeChanger
+                        onChange={onShowSizeChange}
                         onShowSizeChange={onShowSizeChange}
                         defaultCurrent={1}
                         current={curPage}
