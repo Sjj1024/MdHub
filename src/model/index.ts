@@ -1,4 +1,5 @@
 interface fileRes {
+    key: string
     name: string
     path: string
     type: string

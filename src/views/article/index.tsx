@@ -9,8 +9,13 @@ import {
     Pagination,
     Tooltip,
     PaginationProps,
+    Dropdown,
 } from 'antd'
-import { AppstoreOutlined, UnorderedListOutlined } from '@ant-design/icons'
+import {
+    AppstoreOutlined,
+    EllipsisOutlined,
+    UnorderedListOutlined,
+} from '@ant-design/icons'
 import { useCallback, useEffect, useState } from 'react'
 import Files from '@/components/files'
 import ImageItem from '@/components/image'
@@ -23,81 +28,45 @@ export default function Article() {
     // 列表布局使用的数据
     const columns = [
         {
-            title: 'Name',
+            title: '名字',
             dataIndex: 'name',
             key: 'name',
+            width: 750,
             render: (text: any) => <a>{text}</a>,
         },
         {
-            title: 'Age',
-            dataIndex: 'age',
-            key: 'age',
+            title: '类型',
+            dataIndex: 'type',
+            key: 'type',
         },
         {
-            title: 'Address',
-            dataIndex: 'address',
-            key: 'address',
+            title: '大小',
+            dataIndex: 'size',
+            key: 'size',
         },
         {
-            title: 'Tags',
-            key: 'tags',
-            dataIndex: 'tags',
-            render: (_: any, item: any) => (
-                <>
-                    {item.tags.map((tag: any) => {
-                        let color = tag.length > 5 ? 'geekblue' : 'green'
-                        if (tag === 'loser') {
-                            color = 'volcano'
-                        }
-                        return (
-                            <Tag color={color} key={tag}>
-                                {tag.toUpperCase()}
-                            </Tag>
-                        )
-                    })}
-                </>
-            ),
-        },
-        {
-            title: 'Action',
+            title: '操作',
             key: 'action',
             render: (_, record) => (
-                <Space size="middle">
-                    <a>Invite {record.name}</a>
-                    <a>Delete</a>
-                </Space>
+                <Dropdown
+                    menu={{ items, onClick: (m) => dropAction(m, record) }}
+                >
+                    <span className="more-action">操作</span>
+                    {/* <EllipsisOutlined className="more-action" /> */}
+                </Dropdown>
             ),
         },
     ]
-    const data = [
-        {
-            key: '1',
-            name: 'John Brown',
-            age: 32,
-            address: 'New York No. 1 Lake Park',
-            tags: ['nice', 'developer'],
-        },
-        {
-            key: '2',
-            name: 'Jim Green',
-            age: 42,
-            address: 'London No. 1 Lake Park',
-            tags: ['loser'],
-        },
-        {
-            key: '3',
-            name: 'Joe Black',
-            age: 32,
-            address: 'Sydney No. 1 Lake Park',
-            tags: ['cool', 'teacher'],
-        },
-    ]
+
+    const dropAction = (menu: any, data: fileRes) => {
+        console.log('点击了下拉菜单', menu, data)
+    }
 
     // 网格布局使用的数据
     const [fileList, setFileList] = useState<fileRes[]>([])
 
     // 控制显示列表和网格的样式
-    const [show, setShow] = useState('list')
+    const [show, setShow] = useState('grid')
     // 新建文件夹
     const newDir = () => {
         console.log('新创建一个文件夹')
@@ -147,6 +116,7 @@ export default function Article() {
                     fileInfo[2] === 'picture' && imgPreList.push(cur.body)
                     cur.title.includes('FileHub:') &&
                         pre.push({
+                            key: cur.body,
                             name: fileInfo[1].includes('.')
                                 ? fileInfo[1]
                                 : fileInfo[1] +
@@ -200,6 +170,43 @@ export default function Article() {
         // 初始化获取资源列表
         getFiles()
     }, [getFiles])
+
+    // 给表格用的数据
+    const [selectionType, _] = useState<'checkbox'>('checkbox')
+    const rowSelection = {
+        onChange: (selectedRowKeys: React.Key[], selectedRows: any[]) => {
+            console.log(
+                `selectedRowKeys: ${selectedRowKeys}`,
+                'selectedRows: ',
+                selectedRows
+            )
+        },
+        getCheckboxProps: (record: any) => ({
+            disabled: record.name === 'Disabled User', // Column configuration not to be checked
+            name: record.name,
+        }),
+    }
+
+    // 表格组件更多操作内容
+    const items = [
+        {
+            key: 'copyLink',
+            label: '复制链接',
+        },
+        {
+            key: 'shareFile',
+            label: '分享资源',
+        },
+        {
+            key: 'downFile',
+            label: '下载文件',
+        },
+        {
+            key: 'delFile',
+            danger: true,
+            label: '删除文件',
+        },
+    ]
 
     return (
         <div className="articl-main">
@@ -355,7 +362,21 @@ export default function Article() {
                     />
                 </div>
             ) : (
-                <Table columns={columns} dataSource={data} />
+                <Table
+                    rowSelection={{
+                        type: selectionType,
+                        ...rowSelection,
+                    }}
+                    pagination={{
+                        position: ['bottomRight'],
+                        total: pageTotal,
+                        pageSize: pageSize,
+                        onChange: onShowSizeChange,
+                        onShowSizeChange: onShowSizeChange,
+                    }}
+                    columns={columns}
+                    dataSource={fileList}
+                />
             )}
         </div>
     )
