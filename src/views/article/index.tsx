@@ -1,21 +1,26 @@
 import './index.scss'
-import { Input, Select, Button, Table, Tag, Space } from 'antd'
+import {
+    Input,
+    Select,
+    Button,
+    Table,
+    Tag,
+    Space,
+    Pagination,
+    Tooltip,
+    PaginationProps,
+} from 'antd'
 import { AppstoreOutlined, UnorderedListOutlined } from '@ant-design/icons'
-import { useState } from 'react'
+import { useCallback, useEffect, useState } from 'react'
 import Files from '@/components/files'
 import ImageItem from '@/components/image'
 import Music from '@/components/music'
 import Video from '@/components/video'
+import FileApi from '@/apis/files'
+import { fileRes } from '@/model'
 
 export default function Article() {
-    const handleChange = (value: string) => {
-        console.log(`selected ${value}`)
-    }
-
-    const searchArticle = (e: any) => {
-        console.log('搜索文章', e)
-    }
-
+    // 列表布局使用的数据
     const columns = [
         {
             title: 'Name',
@@ -88,6 +93,9 @@ export default function Article() {
         },
     ]
 
+    // 网格布局使用的数据
+    const [fileList, setFileList] = useState<fileRes[]>([])
+
     // 控制显示列表和网格的样式
     const [show, setShow] = useState('list')
     // 新建文件夹
@@ -100,20 +108,113 @@ export default function Article() {
         console.log('新上传文件')
     }
 
+    // 获取资源广场里面的内容，然后渲染
+    const [search, setSearch] = useState<string>('')
+    const [selType, setType] = useState<string>('all')
+    //
+    const [preList, setPreList] = useState<Array<any>>([])
+    // 分页大小
+    const [curPage, setCurPage] = useState(1)
+    const [pageSize, setPageSize] = useState(10)
+    const [pageTotal, setPageTotal] = useState(0)
+    const searchArticle = () => {
+        console.log('搜索文章', search, selType, pageTotal)
+    }
+    //
+    const getFiles = useCallback(
+        async (
+            filter?: string | null,
+            fileType?: string | null,
+            all?: string | null
+        ) => {
+            const shares = await FileApi.searchShare(
+                filter ? filter : 'FileHub',
+                fileType ? fileType : '',
+                all ? '' : '+state:closed',
+                all ? all : '',
+                pageSize,
+                curPage
+            )
+            console.log('获取资源列表', shares)
+            setPageTotal((shares as any).total_count)
+            const imgPreList: any[] = []
+            // 组装渲染列表数据
+            const conList = (shares as any).items.reduce(
+                (pre: fileRes[], cur: any) => {
+                    const fileInfo = cur.title.split('FileHub:')
+                    fileInfo[2] === 'picture' && imgPreList.push(cur.body)
+                    cur.title.includes('FileHub:') &&
+                        pre.push({
+                            name: fileInfo[1].includes('.')
+                                ? fileInfo[1]
+                                : fileInfo[1] +
+                                  cur.body.substring(cur.body.lastIndexOf('.')),
+                            path: cur.number,
+                            type: fileInfo[2],
+                            size: fileInfo[3],
+                            sha:
+                                cur.labels.length === 1
+                                    ? '审核不通过'
+                                    : cur.labels.length === 2
+                                    ? '审核通过'
+                                    : '待审核',
+                            openLink: cur.body,
+                            downLink: cur.body,
+                            htmlLink: cur.html_url,
+                            creatTime: cur.created_at,
+                            selected: false,
+                            showTips: false,
+                            uploading: false,
+                        })
+                    return pre
+                },
+                []
+            )
+            setFileList(conList)
+            setPreList(imgPreList)
+            console.log('conList--', conList)
+        },
+        [curPage, pageSize]
+    )
+
+    // 点击重置按钮
+    const resetSearch = () => {
+        setSearch('')
+        setType('all')
+        console.log('点击重置按钮')
+    }
+
+    const onShowSizeChange: PaginationProps['onShowSizeChange'] = (
+        current,
+        pageSize
+    ) => {
+        console.log(current, pageSize)
+        setCurPage(current)
+        setPageSize(pageSize)
+    }
+
+    // 在副作用里面执行
+    useEffect(() => {
+        // 初始化获取资源列表
+        getFiles()
+    }, [getFiles])
+
     return (
         <div className="articl-main">
             <div className="search-form">
                 <div className="form">
                     <div>
                         <Input
-                            placeholder="文章标题"
+                            placeholder="请输入搜索内容"
                             className="title"
-                            onChange={searchArticle}
+                            value={search}
+                            onChange={(val) => setSearch(val.target.value)}
                         />
                         <Select
-                            defaultValue="全部"
+                            defaultValue={selType}
+                            value={selType}
+                            onSelect={(val) => setType(val)}
                             style={{ width: 120 }}
-                            onChange={handleChange}
                             options={[
                                 { value: 'all', label: '全部' },
                                 { value: 'video', label: '视频' },
@@ -123,7 +224,7 @@ export default function Article() {
                         />
                     </div>
                     <div className="search">
-                        <Button onClick={searchArticle}>重置</Button>
+                        <Button onClick={resetSearch}>重置</Button>
                         <Button
                             type="primary"
                             htmlType="submit"
@@ -164,133 +265,91 @@ export default function Article() {
             </div>
             {/* 表格/网格样式 */}
             {show === 'list' ? (
-                <div className="grid-show">
-                    {/* 网格样式 */}
-                    <div className="item-box">
-                        <ImageItem imgUrl="https://gw.alipayobjects.com/zos/antfincdn/LlvErxo8H9/photo-1503185912284-5271ff81b9a8.webp"></ImageItem>
-                        <div className="file-name">我的图片</div>
+                <div>
+                    <div className="grid-show">
+                        {/* 网格样式：遍历数据 */}
+                        {fileList.map((item) => {
+                            if (item.type === 'picture') {
+                                return (
+                                    <div
+                                        className="item-box"
+                                        key={item.openLink}
+                                    >
+                                        <ImageItem
+                                            imgUrl={item.openLink}
+                                            preList={preList}
+                                        ></ImageItem>
+                                        <Tooltip
+                                            placement="bottom"
+                                            title={item.name}
+                                        >
+                                            <div className="file-name">
+                                                {item.name}
+                                            </div>
+                                        </Tooltip>
+                                    </div>
+                                )
+                            } else if (item.type === 'music') {
+                                return (
+                                    <div
+                                        className="item-box"
+                                        key={item.openLink}
+                                    >
+                                        <Music></Music>
+                                        <Tooltip
+                                            placement="bottom"
+                                            title={item.name}
+                                        >
+                                            <div className="file-name">
+                                                {item.name}
+                                            </div>
+                                        </Tooltip>
+                                    </div>
+                                )
+                            } else if (item.type === 'video') {
+                                return (
+                                    <div
+                                        className="item-box"
+                                        key={item.openLink}
+                                    >
+                                        <Video></Video>
+                                        <Tooltip
+                                            placement="bottom"
+                                            title={item.name}
+                                        >
+                                            <div className="file-name">
+                                                {item.name}
+                                            </div>
+                                        </Tooltip>
+                                    </div>
+                                )
+                            } else {
+                                return (
+                                    <div
+                                        className="item-box"
+                                        key={item.openLink}
+                                    >
+                                        <Files></Files>
+                                        <Tooltip
+                                            placement="bottom"
+                                            title={item.name}
+                                        >
+                                            <div className="file-name">
+                                                {item.name}
+                                            </div>
+                                        </Tooltip>
+                                    </div>
+                                )
+                            }
+                        })}
                     </div>
-                    <div className="item-box">
-                        <Files></Files>
-                        <div className="file-name">我的文件</div>
-                    </div>
-
-                    <div className="item-box">
-                        <ImageItem imgUrl="https://gw.alipayobjects.com/zos/antfincdn/cV16ZqzMjW/photo-1473091540282-9b846e7965e3.webp"></ImageItem>
-                        <div className="file-name">我的图片</div>
-                    </div>
-                    <div className="item-box">
-                        <Music></Music>
-                        <div className="file-name">我的音乐</div>
-                    </div>
-                    <div className="item-box">
-                        <Video></Video>
-                        <div className="file-name">我的视频</div>
-                    </div>
-                    <div className="item-box">
-                        <ImageItem imgUrl="https://gw.alipayobjects.com/zos/antfincdn/x43I27A55%26/photo-1438109491414-7198515b166b.webp"></ImageItem>
-                        <div className="file-name">我的图片</div>
-                    </div>
-                    <div className="item-box">
-                        <ImageItem imgUrl="https://gw.alipayobjects.com/zos/antfincdn/LlvErxo8H9/photo-1503185912284-5271ff81b9a8.webp"></ImageItem>
-                        <div className="file-name">我的图片</div>
-                    </div>
-                    <div className="item-box">
-                        <Files></Files>
-                        <div className="file-name">我的文件</div>
-                    </div>
-
-                    <div className="item-box">
-                        <ImageItem imgUrl="https://gw.alipayobjects.com/zos/antfincdn/cV16ZqzMjW/photo-1473091540282-9b846e7965e3.webp"></ImageItem>
-                        <div className="file-name">我的图片</div>
-                    </div>
-                    <div className="item-box">
-                        <Music></Music>
-                        <div className="file-name">我的音乐</div>
-                    </div>
-                    <div className="item-box">
-                        <Video></Video>
-                        <div className="file-name">我的视频</div>
-                    </div>
-                    <div className="item-box">
-                        <ImageItem imgUrl="https://gw.alipayobjects.com/zos/antfincdn/x43I27A55%26/photo-1438109491414-7198515b166b.webp"></ImageItem>
-                        <div className="file-name">我的图片</div>
-                    </div>
-                    <div className="item-box">
-                        <ImageItem imgUrl="https://gw.alipayobjects.com/zos/antfincdn/LlvErxo8H9/photo-1503185912284-5271ff81b9a8.webp"></ImageItem>
-                        <div className="file-name">我的图片</div>
-                    </div>
-                    <div className="item-box">
-                        <Files></Files>
-                        <div className="file-name">我的文件</div>
-                    </div>
-
-                    <div className="item-box">
-                        <ImageItem imgUrl="https://gw.alipayobjects.com/zos/antfincdn/cV16ZqzMjW/photo-1473091540282-9b846e7965e3.webp"></ImageItem>
-                        <div className="file-name">我的图片</div>
-                    </div>
-                    <div className="item-box">
-                        <Music></Music>
-                        <div className="file-name">我的音乐</div>
-                    </div>
-                    <div className="item-box">
-                        <Video></Video>
-                        <div className="file-name">我的视频</div>
-                    </div>
-                    <div className="item-box">
-                        <ImageItem imgUrl="https://gw.alipayobjects.com/zos/antfincdn/x43I27A55%26/photo-1438109491414-7198515b166b.webp"></ImageItem>
-                        <div className="file-name">我的图片</div>
-                    </div>
-                    <div className="item-box">
-                        <ImageItem imgUrl="https://gw.alipayobjects.com/zos/antfincdn/LlvErxo8H9/photo-1503185912284-5271ff81b9a8.webp"></ImageItem>
-                        <div className="file-name">我的图片</div>
-                    </div>
-                    <div className="item-box">
-                        <Files></Files>
-                        <div className="file-name">我的文件</div>
-                    </div>
-
-                    <div className="item-box">
-                        <ImageItem imgUrl="https://gw.alipayobjects.com/zos/antfincdn/cV16ZqzMjW/photo-1473091540282-9b846e7965e3.webp"></ImageItem>
-                        <div className="file-name">我的图片</div>
-                    </div>
-                    <div className="item-box">
-                        <Music></Music>
-                        <div className="file-name">我的音乐</div>
-                    </div>
-                    <div className="item-box">
-                        <Video></Video>
-                        <div className="file-name">我的视频</div>
-                    </div>
-                    <div className="item-box">
-                        <ImageItem imgUrl="https://gw.alipayobjects.com/zos/antfincdn/x43I27A55%26/photo-1438109491414-7198515b166b.webp"></ImageItem>
-                        <div className="file-name">我的图片</div>
-                    </div>
-                    <div className="item-box">
-                        <ImageItem imgUrl="https://gw.alipayobjects.com/zos/antfincdn/LlvErxo8H9/photo-1503185912284-5271ff81b9a8.webp"></ImageItem>
-                        <div className="file-name">我的图片</div>
-                    </div>
-                    <div className="item-box">
-                        <Files></Files>
-                        <div className="file-name">我的文件</div>
-                    </div>
-
-                    <div className="item-box">
-                        <ImageItem imgUrl="https://gw.alipayobjects.com/zos/antfincdn/cV16ZqzMjW/photo-1473091540282-9b846e7965e3.webp"></ImageItem>
-                        <div className="file-name">我的图片</div>
-                    </div>
-                    <div className="item-box">
-                        <Music></Music>
-                        <div className="file-name">我的音乐</div>
-                    </div>
-                    <div className="item-box">
-                        <Video></Video>
-                        <div className="file-name">我的视频</div>
-                    </div>
-                    <div className="item-box">
-                        <ImageItem imgUrl="https://gw.alipayobjects.com/zos/antfincdn/x43I27A55%26/photo-1438109491414-7198515b166b.webp"></ImageItem>
-                        <div className="file-name">我的图片</div>
-                    </div>
+                    <Pagination
+                        showSizeChanger
+                        onShowSizeChange={onShowSizeChange}
+                        defaultCurrent={1}
+                        current={curPage}
+                        total={pageTotal}
+                    />
                 </div>
             ) : (
                 <Table columns={columns} dataSource={data} />

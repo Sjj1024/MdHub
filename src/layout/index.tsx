@@ -10,7 +10,7 @@ import {
 import { Layout, Menu, theme, Dropdown } from 'antd'
 import './index.scss'
 import type { MenuProps } from 'antd'
-import { Link, Outlet } from 'react-router-dom'
+import { Link, Outlet, useLocation } from 'react-router-dom'
 import { useStore } from '@/store'
 import { observer } from 'mobx-react-lite'
 
@@ -66,6 +66,10 @@ const LayoutBoard: React.FC = () => {
         },
     ]
 
+    // 获取路由中的路径，然后激活响应的菜单
+    const location = useLocation()
+    // console.log('location', location)
+
     return (
         <Layout>
             <Sider trigger={null} collapsible collapsed={collapsed}>
@@ -79,20 +83,20 @@ const LayoutBoard: React.FC = () => {
                 <Menu
                     theme="dark"
                     mode="inline"
-                    defaultSelectedKeys={['1']}
+                    defaultSelectedKeys={[location.pathname]}
                     items={[
                         {
-                            key: '1',
+                            key: '/',
                             icon: <UserOutlined />,
                             label: <Link to="/">数据概览</Link>,
                         },
                         {
-                            key: '2',
+                            key: '/article',
                             icon: <VideoCameraOutlined />,
                             label: <Link to="/article">内容管理</Link>,
                         },
                         {
-                            key: '3',
+                            key: '/publish',
                             icon: <UploadOutlined />,
                             label: <Link to="/publish">发布文章</Link>,
                         },

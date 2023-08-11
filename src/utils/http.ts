@@ -13,7 +13,8 @@ const requests = axios.create({
 requests.interceptors.request.use((config) => {
     //config:配置对象，对象里面有个属性很重要，header请求头，配置token
     if (!config.headers.Authorization) {
-        config.headers['Authorization'] = localStorage.getItem('token') || ''
+        config.headers['Authorization'] =
+            `Bearer ${localStorage.getItem('token')}` || ''
     }
     return config
 })
